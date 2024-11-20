@@ -1,3 +1,14 @@
+const express = require('express');
+const axios = require('axios');
+require('dotenv').config();
+
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
 app.post('/api/chat', async (req, res) => {
     const userMessage = req.body.message;
 
@@ -37,6 +48,8 @@ app.post('/api/chat', async (req, res) => {
         });
     }
 });
+
+module.exports = app;
 
 /*const express = require('express');
 const axios = require('axios');

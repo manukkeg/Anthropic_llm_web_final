@@ -1,4 +1,44 @@
-const express = require('express');
+app.post('/api/chat', async (req, res) => {
+    const userMessage = req.body.message;
+
+    if (!userMessage) {
+        return res.status(400).json({ error: 'Message is required.' });
+    }
+    try {
+        const response = await axios.post(
+            'https://api.anthropic.com/v1/messages',  
+            {
+                model: "claude-3-5-sonnet-20241022", 
+                max_tokens: 4096, // Increase max tokens
+                messages: [
+                    { role: "user", content: userMessage }
+                ]
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': process.env.ANTHROPIC_API_KEY, 
+                    'anthropic-version': '2023-06-01' 
+                },
+                timeout: 30000 // Increase timeout to 30 seconds
+            }
+        );
+    
+        console.log("API Response:", response.data); 
+    
+        // Ensure you're correctly extracting the message content
+        const aiMessage = response.data.content[0].text;
+        res.json({ reply: { content: [{ text: aiMessage }] } });
+    } catch (error) {
+        console.error('Error:', error.response ? error.response.data : error.message);
+        res.status(500).json({ 
+            error: 'Failed to fetch response', 
+            details: error.response ? error.response.data : error.message 
+        });
+    }
+});
+
+/*const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
@@ -48,7 +88,7 @@ app.post('/api/chat', async (req, res) => {
     }
     
 });
-module.exports = app;
+module.exports = app;*/
 
 /*Start the server
 app.listen(PORT, () => {

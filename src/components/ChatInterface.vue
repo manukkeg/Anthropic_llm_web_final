@@ -138,7 +138,7 @@ export default {
         } catch (error) {
           chatHistory.value.push({
             sender: 'Error',
-            message: 'Failed to get response from AI.',
+            message: `${error.message}`,
           });
         } finally {
           isLoading.value = false;

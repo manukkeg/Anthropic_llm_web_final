@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
@@ -61,9 +61,9 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-module.exports = app;
+module.exports = app;*/
 
-/*
+
 const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
@@ -114,7 +114,7 @@ app.post('/api/chat', async (req, res) => {
     }
     
 });
-module.exports = app;*/
+module.exports = app;
 
 /*Start the server
 app.listen(PORT, () => {

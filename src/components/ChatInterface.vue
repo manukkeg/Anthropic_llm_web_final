@@ -1,6 +1,6 @@
 <template>
   <div class="fixed bottom-0 left-0 right-0 p-4 flex justify-center">
-    <div class="chat-container bg-cyan-800 text-white p-4 rounded-t-lg shadow-lg w-full max-w-4xl">
+    <div class="chat-container bg-grey-800 text-white p-4 rounded-t-lg shadow-lg w-full max-w-4xl">
       <!-- Title -->
       <div class="text-center mb-4">
         <h1 class="text-xl font-bold text-blue-400">Anthropic Web Based Chat Bot</h1>
@@ -138,7 +138,7 @@ export default {
         } catch (error) {
           chatHistory.value.push({
             sender: 'Error',
-            message: `${error.message}`,
+            message: 'Failed to get response from AI.',
           });
         } finally {
           isLoading.value = false;

@@ -19,7 +19,9 @@
         </div>
         
         <div v-for="(entry, index) in chatHistory" :key="index" :class="entry.sender">
-          <strong>{{ entry.sender }}:</strong> {{ entry.message }}
+          <strong>{{ entry.sender }}:</strong> 
+          <!--{{ entry.message }} -->
+          <div v-html="convertToMarkdown(entry.message)"></div>
         </div>
 
         <!-- Loading indicator -->
@@ -62,6 +64,7 @@
 
 <script>
 import { ref, nextTick, onMounted, computed } from 'vue'; // <-- Added 'computed' import here
+import marked from "marked"; //Import marked for Markdown rendering
 
 export default {
   setup() {
@@ -146,6 +149,10 @@ export default {
       }
     };
 
+    const convertToMarkdown = (text) => {
+      return marked(text); // Use marked library to render markdown
+    };
+
     // Adjust chat height on window resize
     const handleResize = () => {
       scrollToBottom();
@@ -165,6 +172,7 @@ export default {
       sendMessage,
       handleScroll,
       chatHistoryHeight,
+      convertToMarkdown,
     };
   },
 };

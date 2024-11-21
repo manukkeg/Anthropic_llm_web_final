@@ -132,7 +132,7 @@ export default {
           } else {
             chatHistory.value.push({
               sender: 'Error',
-              message: 'No valid reply from AI.',
+              message: `No valid reply from AI.${JSON.stringify(data)}`,
             });
           }
         } catch (error) {

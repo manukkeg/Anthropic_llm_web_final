@@ -3,10 +3,10 @@
     <div class="chat-container bg-grey-800 text-white p-4 rounded-t-lg shadow-lg w-full max-w-4xl">
       <!-- Title -->
       <div class="text-center mb-4">
-        <h1 class="text-xl font-bold text-blue-400">Anthropic Web-Based Chat Bot</h1>
+        <h1 class="text-xl font-bold text-blue-400">Anthropic Web Based Chat Bot</h1>
       </div>
 
-      <!-- Display area for chat history with markdown support -->
+      <!-- Display area for chat history with dynamic height -->
       <div
         ref="chatHistoryRef"
         class="chat-history overflow-y-auto p-3 bg-gray-900 rounded-lg mb-4 relative custom-scrollbar scroll-instant"
@@ -15,14 +15,11 @@
       >
         <!-- Initial welcome message -->
         <div class="AI mb-4">
-          <strong>AI:</strong>
-          <div v-html="convertToMarkdown('Hi, how can I help you?')"></div>
+          <strong>AI:</strong> Hi, how can I help you?
         </div>
-
-        <!-- Loop through chat history -->
+        
         <div v-for="(entry, index) in chatHistory" :key="index" :class="entry.sender">
-          <strong>{{ entry.sender }}:</strong>
-          <div v-html="convertToMarkdown(entry.message)"></div>
+          <strong>{{ entry.sender }}:</strong> {{ entry.message }}
         </div>
 
         <!-- Loading indicator -->
@@ -35,10 +32,10 @@
         </div>
       </div>
 
-      <!-- Input field and Send button -->
+      <!-- Input field for user messages and Send button -->
       <div class="chat-input flex">
         <input
-          ref="messageInputRef"
+          ref="messageInputRef" 
           v-model="messageInput"
           type="text"
           placeholder="Type your message..."
@@ -51,8 +48,12 @@
           class="p-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           :disabled="isLoading || !messageInput.trim()"
         >
-          <span v-if="isLoading">Sending...</span>
-          <span v-else>Send</span>
+          <span v-if="isLoading">
+            Sending...
+          </span>
+          <span v-else>
+            Send
+          </span>
         </button>
       </div>
     </div>
@@ -60,20 +61,19 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted, computed } from "vue";
-import marked from "marked"; // Import marked for Markdown rendering
+import { ref, nextTick, onMounted, computed } from 'vue'; // <-- Added 'computed' import here
 
 export default {
   setup() {
-    const messageInput = ref("");
+    const messageInput = ref('');
     const chatHistory = ref([]);
     const chatHistoryRef = ref(null);
-    const messageInputRef = ref(null);
+    const messageInputRef = ref(null); // New ref for the input field
     const isNearBottom = ref(true);
     const isLoading = ref(false);
 
     const chatHistoryHeight = computed(() => {
-      return { height: "calc(100vh - 200px)" };
+      return { height: 'calc(100vh - 200px)' };  // Dynamically set height
     });
 
     const handleScroll = () => {
@@ -91,24 +91,24 @@ export default {
     };
 
     const sendMessage = async () => {
-      if (messageInput.value.trim() !== "" && !isLoading.value) {
+      if (messageInput.value.trim() !== '' && !isLoading.value) {
         isLoading.value = true;
-
+        
         chatHistory.value.push({
-          sender: "User",
+          sender: 'User',
           message: messageInput.value,
         });
 
         const userMessage = messageInput.value;
-        messageInput.value = "";
+        messageInput.value = '';
 
         nextTick(scrollToBottom);
 
         try {
-          const response = await fetch("/api/chat", {
-            method: "POST",
+          const response = await fetch('/api/chat', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({ message: userMessage }),
           });
@@ -117,22 +117,27 @@ export default {
           if (data.reply && data.reply.content) {
             const aiMessage = data.reply.content[0].text;
             chatHistory.value.push({
-              sender: "AI",
+              sender: 'AI',
               message: aiMessage,
             });
-
+            
             if (isNearBottom.value) {
               nextTick(scrollToBottom);
             }
+
+            // Focus on the input field after response
+            nextTick(() => {
+              messageInputRef.value.focus(); // Focus input field
+            });
           } else {
             chatHistory.value.push({
-              sender: "Error",
+              sender: 'Error',
               message: `No valid reply from AI.${JSON.stringify(data)}`,
             });
           }
         } catch (error) {
           chatHistory.value.push({
-            sender: "Error",
+            sender: 'Error',
             message: `${error.message}`,
           });
         } finally {
@@ -141,13 +146,13 @@ export default {
       }
     };
 
-    // Convert text to markdown
-    const convertToMarkdown = (text) => {
-      return marked(text); // Use marked library to render markdown
+    // Adjust chat height on window resize
+    const handleResize = () => {
+      scrollToBottom();
     };
 
     onMounted(() => {
-      window.addEventListener("resize", scrollToBottom);
+      window.addEventListener('resize', handleResize);
       scrollToBottom();
     });
 
@@ -155,12 +160,11 @@ export default {
       messageInput,
       chatHistory,
       chatHistoryRef,
-      messageInputRef,
+      messageInputRef, // Bind the new ref
       isLoading,
       sendMessage,
       handleScroll,
       chatHistoryHeight,
-      convertToMarkdown,
     };
   },
 };
@@ -185,10 +189,10 @@ export default {
 
 .AI {
   text-align: left;
-  color: #ffffff;
+  color: #ffffff; /* Changed from #a3e635 to white */
   margin-bottom: 8px;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1); /* Changed from green to white background with lower opacity */
   border-radius: 8px;
 }
 
@@ -216,7 +220,7 @@ export default {
 .loading-dots span {
   width: 8px;
   height: 8px;
-  background-color: #ffffff;
+  background-color: #ffffff; /* Changed loading dots to white */
   border-radius: 50%;
   animation: loading 1.4s infinite ease-in-out both;
 }
@@ -230,12 +234,10 @@ export default {
 }
 
 @keyframes loading {
-  0%,
-  80%,
-  100% {
+  0%, 80%, 100% { 
     transform: scale(0);
   }
-  40% {
+  40% { 
     transform: scale(1.0);
   }
 }

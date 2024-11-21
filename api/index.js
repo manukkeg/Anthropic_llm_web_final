@@ -5,40 +5,34 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON request bodies
+// Strict timeout configuration
+const ANTHROPIC_TIMEOUT = 8000; // 8 seconds to leave buffer for processing
+const MAX_TOKENS = 512; // Reduce token count to speed up response
+
 app.use(express.json());
 
-// Add timeout configuration
-const ANTHROPIC_TIMEOUT = 25000; // 25 seconds (close to Vercel's edge function limit)
-const MAX_RETRY_ATTEMPTS = 2;
-
-// Centralized error handling function
+// Simplified error handling
 const handleApiError = (error) => {
-    console.error('Error communicating with Anthropic API:', 
-        error.response ? error.response.data : error.message
-    );
-    
-    if (error.code === 'ECONNABORTED') {
-        return { 
-            error: 'Request timed out',
-            details: 'The AI service took too long to respond'
-        };
-    }
-    
+    console.error('API Error:', error.message);
     return { 
-        error: 'Failed to fetch response from Anthropic API',
+        error: 'Request processing failed',
         details: error.message 
     };
 };
 
-// Retry mechanism with exponential backoff
-const retryRequest = async (userMessage, attempt = 0) => {
+app.post('/api/chat', async (req, res) => {
+    const userMessage = req.body.message;
+
+    if (!userMessage) {
+        return res.status(400).json({ error: 'Message is required.' });
+    }
+
     try {
         const response = await axios.post(
             'https://api.anthropic.com/v1/messages',  
             {
-                model: "claude-3-5-sonnet-20241022", 
-                max_tokens: 1024,
+                model: "claude-3-haiku-20240307", // Faster, lighter model
+                max_tokens: MAX_TOKENS,
                 messages: [
                     { role: "user", content: userMessage }
                 ]
@@ -53,39 +47,8 @@ const retryRequest = async (userMessage, attempt = 0) => {
             }
         );
     
-        return response.data;
-    } catch (error) {
-        if (attempt < MAX_RETRY_ATTEMPTS) {
-            // Exponential backoff
-            const waitTime = Math.pow(2, attempt) * 1000;
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-            return retryRequest(userMessage, attempt + 1);
-        }
-        throw error;
-    }
-};
-
-// Define the /api/chat endpoint
-app.post('/api/chat', async (req, res) => {
-    const userMessage = req.body.message;
-
-    // Validate that a message was provided in the request body
-    if (!userMessage) {
-        return res.status(400).json({ error: 'Message is required.' });
-    }
-
-    try {
-        const generatedResponse = await retryRequest(userMessage);
-        
-        // Validate response structure
-        if (!generatedResponse || !generatedResponse.content) {
-            return res.status(500).json({ 
-                error: 'Invalid response format from AI service' 
-            });
-        }
-
-        // Extract the text from the first content block
-        const aiReply = generatedResponse.content[0].text || 'No response generated';
+        // Quick response extraction
+        const aiReply = response.data.content?.[0]?.text || 'No response generated';
 
         res.json({ 
             reply: { 
@@ -98,10 +61,10 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Export for Vercel serverless function
 module.exports = app;
 
-/*const express = require('express');
+/*
+const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
